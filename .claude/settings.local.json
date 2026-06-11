@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(docker run *)",
-      "Bash(docker pull *)",
-      "Bash(npx electron-vite *)"
-    ]
-  }
-}
