@@ -1,0 +1,40 @@
+{
+  "name": "xsd-viewer",
+  "version": "0.2.0",
+  "description": "XSD Viewer & Validator for Russian Government Services",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json"
+  },
+  "build": {
+    "appId": "ru.xsd.viewer",
+    "productName": "XSD Viewer",
+    "directories": { "output": "dist" },
+    "files": ["out/**/*"],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.5.2"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
+    "@xyflow/react": "^12.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
