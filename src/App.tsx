@@ -6,8 +6,9 @@ import TypeDetail from './components/TypeDetail';
 import XsdGraph from './components/XsdGraph';
 import XmlValidator from './components/XmlValidator';
 import XsdSource from './components/XsdSource';
+import XsdDiagram from './components/XsdDiagram';
 
-type Tab = 'graph' | 'detail' | 'validate' | 'source';
+type Tab = 'graph' | 'diagram' | 'detail' | 'source' | 'validate';
 
 export default function App() {
   const [schema, setSchema] = useState<XsdSchema | null>(null);
@@ -115,51 +116,26 @@ export default function App() {
 
           <main className="main-panel">
             <div className="tab-bar">
-              <button
-                className={`tab ${tab === 'graph' ? 'tab--active' : ''}`}
-                onClick={() => setTab('graph')}
-              >
-                Граф
-              </button>
-              <button
-                className={`tab ${tab === 'detail' ? 'tab--active' : ''}`}
-                onClick={() => setTab('detail')}
-              >
-                Детали
-              </button>
-              <button
-                className={`tab ${tab === 'source' ? 'tab--active' : ''}`}
-                onClick={() => setTab('source')}
-              >
-                Источник
-              </button>
-              <button
-                className={`tab ${tab === 'validate' ? 'tab--active' : ''}`}
-                onClick={() => setTab('validate')}
-              >
-                Валидация XML
-              </button>
+              <button className={`tab ${tab === 'graph'   ? 'tab--active' : ''}`} onClick={() => setTab('graph')}>Граф</button>
+              <button className={`tab ${tab === 'diagram' ? 'tab--active' : ''}`} onClick={() => setTab('diagram')}>Диаграмма</button>
+              <button className={`tab ${tab === 'detail'  ? 'tab--active' : ''}`} onClick={() => setTab('detail')}>Детали</button>
+              <button className={`tab ${tab === 'source'  ? 'tab--active' : ''}`} onClick={() => setTab('source')}>Источник</button>
+              <button className={`tab ${tab === 'validate'? 'tab--active' : ''}`} onClick={() => setTab('validate')}>Валидация XML</button>
             </div>
 
             <div className="tab-content">
               {tab === 'graph' && (
                 <XsdGraph schema={schema} selected={selected} onSelect={onSelect} />
               )}
-              {tab === 'detail' && selected && (
-                <XsdDetail schema={schema} selected={selected} />
+              {tab === 'diagram' && (
+                <XsdDiagram schema={schema} selected={selected} onSelect={(item) => { onSelect(item); }} />
               )}
+              {tab === 'detail' && selected && <XsdDetail schema={schema} selected={selected} />}
               {tab === 'detail' && !selected && (
-                <div className="detail-empty-state">
-                  Выберите элемент или тип в дереве слева
-                </div>
+                <div className="detail-empty-state">Выберите элемент или тип в дереве слева</div>
               )}
               {tab === 'source' && (
-                <XsdSource
-                  content={xsdContent}
-                  schema={schema}
-                  selected={selected}
-                  onSelect={onSelect}
-                />
+                <XsdSource content={xsdContent} schema={schema} selected={selected} onSelect={onSelect} />
               )}
               {tab === 'validate' && <XmlValidator xsdContent={xsdContent} />}
             </div>

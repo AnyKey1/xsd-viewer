@@ -754,3 +754,147 @@ code {
   text-decoration: underline solid var(--yellow);
   text-underline-offset: 2px;
 }
+
+/* ── XsdDiagram nodes ─────────────────────────────────────────────────────── */
+
+/* Base diagram node */
+.dn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-family: var(--font-ui);
+  min-width: 90px;
+  max-width: 260px;
+  cursor: default;
+  transition: box-shadow 0.15s;
+}
+.dn:hover { box-shadow: 0 0 0 1.5px var(--blue); }
+
+.dn-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dn-type {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Root node (selected type/element) */
+.dn--root {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, var(--panel));
+}
+.dn--root .dn-name { color: var(--blue); font-size: 13px; }
+
+/* Regular element — solid border */
+.dn--element { border-color: #4a4f66; }
+
+/* Optional element — dashed border */
+.dn--optional {
+  border-style: dashed;
+  border-color: #4a4f66;
+}
+
+/* Clickable type ref */
+.dn--link { cursor: pointer; }
+.dn--link:hover { border-color: var(--peach); box-shadow: 0 0 0 1.5px var(--peach); }
+.dn--link .dn-name { color: var(--peach); }
+
+/* Attribute node */
+.dn--attr {
+  border-color: #2e4a4a;
+  background: color-mix(in srgb, var(--teal) 6%, var(--panel));
+  border-style: dashed;
+}
+.dn--attr .dn-name { color: var(--teal); }
+.dn--required { border-style: solid; }
+
+/* Group ref */
+.dn--group {
+  border-color: var(--purple);
+  background: color-mix(in srgb, var(--purple) 8%, var(--panel));
+}
+.dn--group .dn-name { color: var(--purple); }
+
+/* Any */
+.dn--any {
+  border-color: var(--text-dim);
+  border-style: dashed;
+}
+.dn--any .dn-name { color: var(--text-dim); }
+
+/* ── Compositor node (sequence / choice / all) ────────────────────────────── */
+.dc {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  position: relative;
+  font-size: 10px;
+}
+.dc-sym {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.dc-occ {
+  font-size: 9px;
+  color: var(--green);
+  position: absolute;
+  bottom: -1px;
+  right: 2px;
+}
+
+.dc--sequence { border-color: #4a5568; }
+.dc--sequence .dc-sym { color: var(--text-sub); }
+
+.dc--choice { border-color: #6b4c1e; background: color-mix(in srgb, var(--yellow) 6%, var(--panel)); }
+.dc--choice .dc-sym { color: var(--yellow); }
+
+.dc--all { border-color: #2a4a2a; background: color-mix(in srgb, var(--green) 6%, var(--panel)); }
+.dc--all .dc-sym { color: var(--green); font-size: 14px; }
+
+/* ── Diagram legend ───────────────────────────────────────────────────────── */
+.diagram-legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 12px;
+  pointer-events: none;
+}
+.dl-comp {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 4px;
+  letter-spacing: 1px;
+}
+.dl-seq    { color: var(--text-sub); }
+.dl-choice { color: var(--yellow); border-color: #6b4c1e; }
+.dl-all    { color: var(--green);  border-color: #2a4a2a; }
+.dl-opt { color: var(--text-dim); letter-spacing: 2px; }
+.dl-attr { color: var(--teal); font-weight: 600; }
