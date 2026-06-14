@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
+  Panel,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   Handle,
   Position,
   type NodeProps,
@@ -33,20 +36,13 @@ function XsdNode({ data, type }: NodeProps<Node<XsdGraphNode>>) {
   const label = data.label as string;
   const doc = data.documentation as string | undefined;
   const meta = data.meta as string;
-  // Width scales with label length to fit Cyrillic names (wider chars)
   const width = Math.max(180, Math.min(300, label.length * 9 + 40));
   return (
     <div className="xsd-node" style={{ borderColor: color, width }}>
       <Handle type="target" position={Position.Top} style={{ background: color }} />
-      <div className="xsd-node-title" title={label} style={{ color }}>
-        {label}
-      </div>
+      <div className="xsd-node-title" title={label} style={{ color }}>{label}</div>
       {meta && <div className="xsd-node-meta">{meta}</div>}
-      {doc && (
-        <div className="xsd-node-doc" title={doc}>
-          {doc.length > 50 ? doc.slice(0, 50) + '…' : doc}
-        </div>
-      )}
+      {doc && <div className="xsd-node-doc" title={doc}>{doc.length > 50 ? doc.slice(0, 50) + '…' : doc}</div>}
       <Handle type="source" position={Position.Bottom} style={{ background: color }} />
     </div>
   );
@@ -59,9 +55,11 @@ const nodeTypes = {
   xsdGroup: XsdNode,
 };
 
-export default function XsdGraph({ schema, selected, onSelect }: Props) {
+// Inner component — needs to be inside ReactFlowProvider to use useReactFlow
+function GraphInner({ schema, selected, onSelect }: Props) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<XsdGraphNode>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView } = useReactFlow();
 
   useEffect(() => {
     const { nodes: n, edges: e } = buildGraph(schema);
@@ -69,81 +67,73 @@ export default function XsdGraph({ schema, selected, onSelect }: Props) {
     setEdges(e);
   }, [schema]);
 
+  // fitView after nodes are painted — short delay lets the DOM measure node sizes
+  useEffect(() => {
+    if (nodes.length === 0) return;
+    const t = setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 80);
+    return () => clearTimeout(t);
+  }, [nodes.length, fitView]);
+
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       const id = node.id;
-      if (id.startsWith('ct:')) onSelect({ kind: 'complexType', name: id.slice(3) });
-      else if (id.startsWith('st:')) onSelect({ kind: 'simpleType', name: id.slice(3) });
-      else if (id.startsWith('el:')) onSelect({ kind: 'element', name: id.slice(3) });
-      else if (id.startsWith('grp:')) onSelect({ kind: 'group', name: id.slice(4) });
+      if (id.startsWith('ct:'))  onSelect({ kind: 'complexType', name: id.slice(3) });
+      else if (id.startsWith('st:'))  onSelect({ kind: 'simpleType', name: id.slice(3) });
+      else if (id.startsWith('el:'))  onSelect({ kind: 'element',   name: id.slice(3) });
+      else if (id.startsWith('grp:')) onSelect({ kind: 'group',     name: id.slice(4) });
     },
     [onSelect],
   );
 
   const highlightId = selected
-    ? selected.kind === 'complexType'
-      ? `ct:${selected.name}`
-      : selected.kind === 'simpleType'
-        ? `st:${selected.name}`
-        : selected.kind === 'element'
-          ? `el:${selected.name}`
-          : selected.kind === 'group'
-            ? `grp:${selected.name}`
-            : null
-    : null;
+    ? selected.kind === 'complexType' ? `ct:${selected.name}`
+    : selected.kind === 'simpleType'  ? `st:${selected.name}`
+    : selected.kind === 'element'     ? `el:${selected.name}`
+    : selected.kind === 'group'       ? `grp:${selected.name}`
+    : null : null;
 
   const styledNodes = nodes.map((n) => ({
     ...n,
-    style: {
-      ...n.style,
-      opacity: highlightId && n.id !== highlightId ? 0.4 : 1,
-      transition: 'opacity 0.2s',
-    },
+    style: { ...n.style, opacity: highlightId && n.id !== highlightId ? 0.35 : 1, transition: 'opacity 0.2s' },
   }));
 
   if (nodes.length === 0) {
-    return (
-      <div className="graph-empty">
-        <p>Граф пуст — нет глобальных типов или элементов</p>
-      </div>
-    );
+    return <div className="graph-empty"><p>Граф пуст — нет глобальных типов или элементов</p></div>;
   }
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <ReactFlow
-        nodes={styledNodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.1}
-        maxZoom={3}
-      >
-        <Background color="#313244" gap={20} />
-        <Controls />
-        <MiniMap
-          nodeColor={(n) => {
-            const colors: Record<string, string> = {
-              xsdComplexType: '#89b4fa',
-              xsdSimpleType: '#a6e3a1',
-              xsdElement: '#fab387',
-              xsdGroup: '#cba6f7',
-            };
-            return colors[n.type ?? ''] ?? '#6c7086';
-          }}
-          style={{ background: '#181825' }}
-        />
-      </ReactFlow>
-      <div className="graph-legend">
+    <ReactFlow
+      nodes={styledNodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onNodeClick={onNodeClick}
+      nodeTypes={nodeTypes}
+      minZoom={0.05}
+      maxZoom={3}
+      proOptions={{ hideAttribution: true }}
+    >
+      <Background color="#313244" gap={20} />
+      <Controls />
+      <MiniMap
+        nodeColor={(n) => ({ xsdComplexType: '#89b4fa', xsdSimpleType: '#a6e3a1', xsdElement: '#fab387', xsdGroup: '#cba6f7' })[n.type ?? ''] ?? '#6c7086'}
+        style={{ background: '#181825' }}
+      />
+      {/* Panel stays inside the ReactFlow viewport — never overlaps the sidebar */}
+      <Panel position="bottom-right" style={{ display: 'flex', gap: 10, fontSize: 11, background: 'var(--panel)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', pointerEvents: 'none' }}>
         <span style={{ color: '#89b4fa' }}>■ complexType</span>
         <span style={{ color: '#a6e3a1' }}>■ simpleType</span>
         <span style={{ color: '#fab387' }}>■ element</span>
         <span style={{ color: '#cba6f7' }}>■ group</span>
-      </div>
-    </div>
+      </Panel>
+    </ReactFlow>
+  );
+}
+
+export default function XsdGraph(props: Props) {
+  return (
+    <ReactFlowProvider>
+      <GraphInner {...props} />
+    </ReactFlowProvider>
   );
 }

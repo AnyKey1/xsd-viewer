@@ -94,6 +94,9 @@ html, body, #root {
   min-height: 42px;
 }
 
+/* macOS: leave room for traffic-light buttons (≈76 px) */
+.mac .toolbar { padding-left: 80px; }
+
 .toolbar > * { -webkit-app-region: no-drag; }
 
 .toolbar-brand {
@@ -101,7 +104,6 @@ html, body, #root {
   color: var(--blue);
   font-size: 14px;
   padding-right: 8px;
-  padding-left: env(titlebar-area-x, 0px);
 }
 
 .toolbar-stats {
@@ -224,6 +226,14 @@ html, body, #root {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative; /* anchor for absolute children (ReactFlow internal) */
+}
+
+/* ReactFlow root and other direct tab children must fill the flex cell */
+.tab-content > div,
+.tab-content > .react-flow {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── XSD Tree ─────────────────────────────────────────────────────────────── */
